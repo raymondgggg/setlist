@@ -1,0 +1,10 @@
+version: '3'
+tasks:
+  api:dev:
+    desc: Start the API in development mode (with live reloading)
+    deps:
+      - api:dev:build
+  api:dev:build:
+    desc: Build the Go binary
+    dir: "./api"
+    cmd: air -c .air.toml

@@ -1,0 +1,10 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api.dev
+    ports:
+      - 8000:8080
+    volumes:
+      - .:/app
+    command: task api:dev
