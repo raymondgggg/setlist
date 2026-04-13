@@ -7,4 +7,26 @@ services:
       - 8000:8080
     volumes:
       - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
     command: task api:dev
+  db:
+    image: postgres:18.3
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: setlist_api_dev
+    ports:
+      - 8001:5432
+    volumes:
+      - setlist_db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d setlist_api_dev -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  setlist_db_data:
