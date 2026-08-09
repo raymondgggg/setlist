@@ -9,21 +9,21 @@ import (
 	"context"
 	"fmt"
 	"setlist/graph"
-	models1 "setlist/models"
+	"setlist/models"
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input models1.NewUser) (*models1.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.User, error) {
 	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*models1.User, error) {
+func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
 	panic(fmt.Errorf("not implemented: Users - users"))
 }
 
 // ID is the resolver for the id field.
-func (r *userResolver) ID(ctx context.Context, obj *models1.User) (string, error) {
+func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error) {
 	panic(fmt.Errorf("not implemented: ID - id"))
 }
 

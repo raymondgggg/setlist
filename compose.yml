@@ -10,6 +10,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - ./api/.env
     command: task api:dev
   db:
     image: postgres:18.3
