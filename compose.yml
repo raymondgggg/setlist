@@ -17,13 +17,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: setlist_api_dev
+      POSTGRES_DB: setlist-api-dev
     ports:
       - 8001:5432
     volumes:
       - setlist_db_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d setlist_api_dev -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -d setlist-api-dev -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
