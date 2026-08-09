@@ -11,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/vektah/gqlparser/v2/ast"
+	"go.uber.org/zap"
 )
 
 // Defining the Graphql handler
@@ -46,8 +47,12 @@ func playgroundHandler() gin.HandlerFunc {
 }
 
 func main() {
+	logger := zap.Must(zap.NewDevelopment())
+	defer logger.Sync() // flushes buffer, if any
+
 	// Setting up Gin
 	r := gin.Default()
+	r.Use(gin.Recovery())
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
 	r.Run()
