@@ -1,6 +1,7 @@
 package main
 
 import (
+	"setlist/config"
 	"setlist/graph"
 	resolvers "setlist/graph/resolvers"
 
@@ -49,6 +50,11 @@ func playgroundHandler() gin.HandlerFunc {
 func main() {
 	logger := zap.Must(zap.NewDevelopment())
 	defer logger.Sync() // flushes buffer, if any
+
+	_, err := config.LoadEnv()
+	if err != nil {
+		panic("cannot load env config")
+	}
 
 	// Setting up Gin
 	r := gin.Default()
