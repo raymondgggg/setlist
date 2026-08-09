@@ -8,3 +8,7 @@ package graph
 // here.
 
 type Resolver struct{}
+
+type Query struct{}
+
+type Mutation struct{}

@@ -32,7 +32,7 @@ exec:
 
 # Where should any generated models go?
 model:
-  filename: setlist/models/models_gen.go
+  filename: models/models_gen.go
   package: models
 
   # Optional: Pass in a path to a new gotpl template to use for generating the models

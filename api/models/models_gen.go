@@ -2,5 +2,17 @@
 
 package models
 
+type Mutation struct {
+}
+
+type NewUser struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+}
+
 type Query struct {
+}
+
+type Test struct {
+	Name *string `json:"name,omitempty"`
 }
