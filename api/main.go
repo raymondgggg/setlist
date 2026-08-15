@@ -13,6 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/zap"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 // Defining the Graphql handler
@@ -51,9 +53,14 @@ func main() {
 	logger := zap.Must(zap.NewDevelopment())
 	defer logger.Sync() // flushes buffer, if any
 
-	_, err := config.LoadEnv()
+	c, err := config.LoadEnv()
 	if err != nil {
 		panic("cannot load env config")
+	}
+
+	_, err = gorm.Open(postgres.Open(c.DBUrl))
+	if err != nil {
+		panic("error opening gorm connection")
 	}
 
 	// Setting up Gin
