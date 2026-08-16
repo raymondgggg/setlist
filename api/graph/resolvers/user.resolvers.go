@@ -9,22 +9,27 @@ import (
 	"context"
 	"fmt"
 	"setlist/graph"
-	"setlist/models"
+
+	"github.com/google/uuid"
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input graph.NewUser) (*graph.User, error) {
 	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
 }
 
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id uuid.UUID) (*graph.User, error) {
+	du, err := r.users.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return graph.ToGraphQLUser(du), nil
 }
 
-// ID is the resolver for the id field.
-func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*graph.User, error) {
+	panic(fmt.Errorf("not implemented: Users - users"))
 }
 
 // Mutation returns graph.MutationResolver implementation.
@@ -33,9 +38,5 @@ func (r *Resolver) Mutation() graph.MutationResolver { return &mutationResolver{
 // Query returns graph.QueryResolver implementation.
 func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
 
-// User returns graph.UserResolver implementation.
-func (r *Resolver) User() graph.UserResolver { return &userResolver{r} }
-
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type userResolver struct{ *Resolver }

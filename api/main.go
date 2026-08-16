@@ -2,6 +2,7 @@ package main
 
 import (
 	"setlist/config"
+	"setlist/db"
 	"setlist/graph"
 	resolvers "setlist/graph/resolvers"
 
@@ -18,10 +19,14 @@ import (
 )
 
 // Defining the Graphql handler
-func graphqlHandler() gin.HandlerFunc {
+func graphqlHandler(ur *db.UserRepository) gin.HandlerFunc {
+	r := resolvers.NewResolver(ur)
+
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in graph/resolvers/resolver.go
-	h := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &resolvers.Resolver{}}))
+	h := handler.New(graph.NewExecutableSchema(graph.Config{
+		Resolvers: r,
+	}))
 
 	// Server setup:
 	h.AddTransport(transport.Options{})
@@ -58,15 +63,18 @@ func main() {
 		panic("cannot load env config")
 	}
 
-	_, err = gorm.Open(postgres.Open(c.DBUrl))
+	gormDB, err := gorm.Open(postgres.Open(c.DBUrl))
 	if err != nil {
 		panic("error opening gorm connection")
 	}
 
+	// Create repositories
+	ur := db.NewUserRepository(gormDB)
+
 	// Setting up Gin
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.POST("/query", graphqlHandler())
+	r.POST("/query", graphqlHandler(ur))
 	r.GET("/", playgroundHandler())
 	r.Run()
 }

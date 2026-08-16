@@ -32,8 +32,8 @@ exec:
 
 # Where should any generated models go?
 model:
-  filename: models/models_gen.go
-  package: models
+  filename: graph/models_gen.go
+  package: graph
 
   # Optional: Pass in a path to a new gotpl template to use for generating the models
   # model_template: [your/path/model.gotpl]
@@ -156,8 +156,7 @@ call_argument_directives_with_null: true
 
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
-autobind:
- - "setlist/models"
+# autobind:
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -167,16 +166,7 @@ autobind:
 models:
   ID:
     model:
-      - github.com/99designs/gqlgen/graphql.ID
-      - github.com/99designs/gqlgen/graphql.Int
-      - github.com/99designs/gqlgen/graphql.Int64
-      - github.com/99designs/gqlgen/graphql.Int32
-  # gqlgen provides a default GraphQL UUID convenience wrapper for github.com/google/uuid 
-  # but you can override this to provide your own GraphQL UUID implementation
-  UUID:
-    model:
       - github.com/99designs/gqlgen/graphql.UUID
-
   # The GraphQL spec explicitly states that the Int type is a signed 32-bit
   # integer. Using Go int or int64 to represent it can lead to unexpected
   # behavior, and some GraphQL tools like Apollo Router will fail when
