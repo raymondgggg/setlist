@@ -13,3 +13,7 @@ tasks:
     desc: Migrate up to the latest version
     dir: "./api/migrations"
     cmd: "tern migrate"
+  api:test:
+    desc: Run all tests in the API repository
+    dir: "./api"
+    cmd: "go test ./..."
