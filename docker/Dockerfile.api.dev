@@ -1,4 +1,4 @@
-FROM golang:1.26.1-alpine
+FROM golang:1.26.6-alpine
 
 WORKDIR /app/api
 
@@ -17,3 +17,5 @@ RUN go install github.com/air-verse/air@v1.64.5
 RUN go install github.com/99designs/gqlgen@v0.17.88
 # Install tern for migrations
 RUN go install github.com/jackc/tern/v2@v2.3.5
+
+EXPOSE 8001
