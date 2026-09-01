@@ -15,6 +15,7 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBUrl      string
+	JWTSecret  string
 }
 
 func buildDBURL(c Config) string {
@@ -28,19 +29,34 @@ func buildDBURL(c Config) string {
 	return u.String()
 }
 
+func requireEnv(key string) (string, error) {
+	v := os.Getenv(key)
+	if v == "" {
+		return "", fmt.Errorf("%v is required", key)
+	}
+	return v, nil
+}
+
 func LoadEnv() (*Config, error) {
 	c := Config{}
 	err := godotenv.Load()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("godotenv load: %w", err)
 	}
 
+	// TODO: evaluate which DB fields should be made required
+	// also add a default fallback value for specifically these fields
 	c.DBHost = os.Getenv("DB_HOST")
 	c.DBPort = os.Getenv("DB_PORT")
 	c.DBUser = os.Getenv("DB_USER")
 	c.DBPassword = os.Getenv("DB_PASSWORD")
 	c.DBName = os.Getenv("DB_NAME")
 	c.DBUrl = buildDBURL(c)
+
+	c.JWTSecret, err = requireEnv("JWT_SECRET")
+	if err != nil {
+		return nil, err
+	}
 
 	return &c, nil
 }
