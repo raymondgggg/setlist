@@ -14,7 +14,7 @@ const secretLength = 32
 func TestGenerateParseAccessToken(t *testing.T) {
 	t.Run("round trip: access token generated successfully for user", func(t *testing.T) {
 		userID := uuid.New()
-		ttl, _ := time.ParseDuration("10m")
+		ttl := time.Minute * 10
 		secret := make([]byte, secretLength)
 		rand.Read(secret)
 
@@ -27,7 +27,7 @@ func TestGenerateParseAccessToken(t *testing.T) {
 	})
 	t.Run("generating with one secret, parsing with another", func(t *testing.T) {
 		userID := uuid.New()
-		ttl, _ := time.ParseDuration("10m")
+		ttl := time.Minute * 10
 
 		secret1 := make([]byte, secretLength)
 		rand.Read(secret1)
@@ -42,7 +42,7 @@ func TestGenerateParseAccessToken(t *testing.T) {
 	})
 	t.Run("expired token isn't able to be parsed", func(t *testing.T) {
 		userID := uuid.New()
-		ttl, _ := time.ParseDuration("1s")
+		ttl := time.Second * 1
 		secret := make([]byte, secretLength)
 		rand.Read(secret)
 
