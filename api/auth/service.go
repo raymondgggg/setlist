@@ -26,6 +26,15 @@ type Service struct {
 	jwtSecret string
 }
 
+func NewService(ur *db.UserRepository, sr *db.SessionRepository, l *zap.Logger, secret string) *Service {
+	return &Service{
+		user:      ur,
+		session:   sr,
+		logger:    l,
+		jwtSecret: secret,
+	}
+}
+
 var errLoginFailed = fmt.Errorf("The username or password provided is incorrect.")
 
 func (s *Service) Login(ctx context.Context, email, password string) (accessToken string, refreshToken string, err error) {

@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"setlist/auth"
 	"setlist/db"
 
 	"github.com/google/uuid"
@@ -18,12 +19,20 @@ type userGetter interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*db.User, error)
 }
 
-type Resolver struct {
-	users userGetter
+type authService interface {
+	Login(ctx context.Context, email, password string) (string, string, error)
 }
 
-func NewResolver(users userGetter) *Resolver {
-	return &Resolver{users: users}
+type Resolver struct {
+	users userGetter
+	auth  authService
+}
+
+func NewResolver(users userGetter, as *auth.Service) *Resolver {
+	return &Resolver{
+		users: users,
+		auth:  as,
+	}
 }
 
 type Query struct{}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"setlist/auth"
 	"setlist/config"
 	"setlist/db"
 	"setlist/graph"
@@ -19,8 +20,8 @@ import (
 )
 
 // Defining the Graphql handler
-func graphqlHandler(ur *db.UserRepository) gin.HandlerFunc {
-	r := resolvers.NewResolver(ur)
+func graphqlHandler(ur *db.UserRepository, as *auth.Service) gin.HandlerFunc {
+	r := resolvers.NewResolver(ur, as)
 
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in graph/resolvers/resolver.go
@@ -70,11 +71,15 @@ func main() {
 
 	// Create repositories
 	ur := db.NewUserRepository(gormDB)
+	sr := db.NewSessionRepository(gormDB)
+
+	// Create auth service
+	as := auth.NewService(ur, sr, logger, c.JWTSecret)
 
 	// Setting up Gin
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.POST("/query", graphqlHandler(ur))
+	r.POST("/query", graphqlHandler(ur, as))
 	r.GET("/", playgroundHandler())
 	r.Run()
 }
