@@ -13,7 +13,7 @@ func WithResponseWriter(ctx context.Context, w http.ResponseWriter) context.Cont
 	return context.WithValue(ctx, responseWriterKey, w)
 }
 
-func responseWriter(ctx context.Context) (http.ResponseWriter, bool) {
+func ResponseWriter(ctx context.Context) (http.ResponseWriter, bool) {
 	w, ok := ctx.Value(responseWriterKey).(http.ResponseWriter)
 	return w, ok
 }

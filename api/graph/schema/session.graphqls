@@ -1,0 +1,12 @@
+extend type Query {
+  session(userID: ID!): Session
+}
+
+extend type Mutation {
+  login(email: String!, password: String!): Session
+}
+
+type Session {
+  userID: ID!
+  accessToken: String!
+}

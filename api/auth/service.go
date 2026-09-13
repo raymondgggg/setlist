@@ -35,53 +35,64 @@ func NewService(ur *db.UserRepository, sr *db.SessionRepository, l *zap.Logger, 
 	}
 }
 
+// Refresh tokens have a 30 day lifespan.
+const RefreshTokenTTL = (time.Hour * 24) * 30
+
 var errLoginFailed = fmt.Errorf("The username or password provided is incorrect.")
 
-func (s *Service) Login(ctx context.Context, email, password string) (accessToken string, refreshToken string, err error) {
+type LoginResult struct {
+	UserID       uuid.UUID
+	AccessToken  string
+	RefreshToken string
+}
+
+func (s *Service) Login(ctx context.Context, email, password string) (*LoginResult, error) {
+	res := &LoginResult{}
 	u, err := s.user.GetByEmail(ctx, email)
 	if err != nil || u == nil {
 		s.logger.Warn("failed to fetch user", zap.Error(err))
-		return "", "", errLoginFailed
+		return nil, errLoginFailed
 	}
+	res.UserID = u.ID
 
 	if u.PasswordHash == nil {
 		// TODO: implement OAuth only flow
 		s.logger.Warn("login attempt against account with no password set", zap.String("email", u.Email))
-		return "", "", errLoginFailed
+		return nil, errLoginFailed
 	}
 	if err = crypto.ComparePassword(*u.PasswordHash, password); err != nil {
 		s.logger.Warn("passwords don't match", zap.Error(err))
-		return "", "", errLoginFailed
+		return nil, errLoginFailed
 	}
 
-	refreshToken, err = crypto.GenerateRandomToken()
+	refreshToken, err := crypto.GenerateRandomToken()
 	if err != nil {
 		s.logger.Error("failed to generate refresh token", zap.Error(err))
-		return "", "", errLoginFailed
+		return nil, errLoginFailed
 	}
+	res.RefreshToken = refreshToken
 
-	// Refresh tokens have a 30 day lifespan.
-	refreshTokenTTL := (time.Hour * 24) * 30
 	session := &db.Session{
 		ID:        uuid.New(),
 		UserID:    u.ID,
 		TokenHash: refreshToken,
-		ExpiresAt: time.Now().Add(refreshTokenTTL),
+		ExpiresAt: time.Now().Add(RefreshTokenTTL),
 	}
 
 	if err = s.session.Create(ctx, session); err != nil {
 		s.logger.Error("failed to create session", zap.Error(err))
-		return "", "", errLoginFailed
+		return nil, errLoginFailed
 	}
 
 	secretBytes := []byte(s.jwtSecret)
 	// Access tokens have a 10 minute lifespan.
 	accessTokenTTL := time.Minute * 10
-	accessToken, err = GenerateAccessToken(u.ID, secretBytes, accessTokenTTL)
+	accessToken, err := GenerateAccessToken(u.ID, secretBytes, accessTokenTTL)
 	if err != nil {
 		s.logger.Error("failed to generate access token", zap.Error(err))
-		return "", "", errLoginFailed
+		return nil, errLoginFailed
 	}
+	res.AccessToken = accessToken
 
-	return accessToken, refreshToken, nil
+	return res, nil
 }

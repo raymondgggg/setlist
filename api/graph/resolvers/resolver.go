@@ -3,9 +3,11 @@ package graph
 import (
 	"context"
 	"setlist/auth"
+	"setlist/config"
 	"setlist/db"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 //go:generate go tool gqlgen generate
@@ -20,18 +22,22 @@ type userGetter interface {
 }
 
 type authService interface {
-	Login(ctx context.Context, email, password string) (string, string, error)
+	Login(ctx context.Context, email, password string) (*auth.LoginResult, error)
 }
 
 type Resolver struct {
-	users userGetter
-	auth  authService
+	users  userGetter
+	auth   authService
+	logger *zap.Logger
+	env    config.Environment
 }
 
-func NewResolver(users userGetter, as *auth.Service) *Resolver {
+func NewResolver(users userGetter, as *auth.Service, l *zap.Logger, e config.Environment) *Resolver {
 	return &Resolver{
-		users: users,
-		auth:  as,
+		users:  users,
+		auth:   as,
+		logger: l,
+		env:    e,
 	}
 }
 

@@ -20,8 +20,8 @@ import (
 )
 
 // Defining the Graphql handler
-func graphqlHandler(ur *db.UserRepository, as *auth.Service) gin.HandlerFunc {
-	r := resolvers.NewResolver(ur, as)
+func graphqlHandler(ur *db.UserRepository, as *auth.Service, l *zap.Logger, e config.Environment) gin.HandlerFunc {
+	r := resolvers.NewResolver(ur, as, l, e)
 
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in graph/resolvers/resolver.go
@@ -51,7 +51,7 @@ func graphqlHandler(ur *db.UserRepository, as *auth.Service) gin.HandlerFunc {
 
 // Defining the Playground handler
 func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL", "/query")
+	h := playground.Handler("GraphQL", "/graphql")
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
@@ -82,7 +82,7 @@ func main() {
 	// Setting up Gin
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.POST("/query", graphqlHandler(ur, as))
+	r.POST("/graphql", graphqlHandler(ur, as, logger, c.Env))
 	r.GET("/", playgroundHandler())
 	r.Run()
 }

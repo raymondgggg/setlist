@@ -18,6 +18,11 @@ type NewUser struct {
 type Query struct {
 }
 
+type Session struct {
+	UserID      uuid.UUID `json:"userID"`
+	AccessToken string    `json:"accessToken"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	FirstName *string   `json:"firstName,omitempty"`
