@@ -16,6 +16,18 @@ type Config struct {
 	DBName     string
 	DBUrl      string
 	JWTSecret  string
+	Env        Environment
+}
+
+type Environment string
+
+const (
+	Development = "development"
+	Production  = "production"
+)
+
+func (e Environment) IsProduction() bool {
+	return e == Production
 }
 
 func buildDBURL(c Config) string {
@@ -56,6 +68,12 @@ func LoadEnv() (*Config, error) {
 	c.JWTSecret, err = requireEnv("JWT_SECRET")
 	if err != nil {
 		return nil, err
+	}
+
+	if v := os.Getenv("APP_ENV"); v != "" {
+		c.Env = Environment(v)
+	} else {
+		c.Env = Development
 	}
 
 	return &c, nil
