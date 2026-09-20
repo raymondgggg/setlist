@@ -33,6 +33,18 @@ func (r *SessionRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (
 	return &s, nil
 }
 
+func (r *SessionRepository) GetByTokenHash(ctx context.Context, hash string) (*Session, error) {
+	var s Session
+	if err := r.db.WithContext(ctx).First(&s, "token_hash = ?", hash).Error; err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 func (r *SessionRepository) Create(ctx context.Context, s *Session) error {
 	return r.db.WithContext(ctx).Create(s).Error
+}
+
+func (r *SessionRepository) Update(ctx context.Context, s *Session) error {
+	return r.db.WithContext(ctx).Updates(s).Error
 }

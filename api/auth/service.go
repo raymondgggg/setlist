@@ -15,13 +15,15 @@ type userGetter interface {
 	GetByEmail(ctx context.Context, email string) (*db.User, error)
 }
 
-type sessionCreator interface {
+type sessionRepository interface {
+	GetByTokenHash(ctx context.Context, hash string) (*db.Session, error)
 	Create(ctx context.Context, s *db.Session) error
+	Update(ctx context.Context, s *db.Session) error
 }
 
 type Service struct {
 	user      userGetter
-	session   sessionCreator
+	session   sessionRepository
 	logger    *zap.Logger
 	jwtSecret string
 }
@@ -37,6 +39,7 @@ func NewService(ur *db.UserRepository, sr *db.SessionRepository, l *zap.Logger, 
 
 // Refresh tokens have a 30 day lifespan.
 const RefreshTokenTTL = (time.Hour * 24) * 30
+const RefreshCookieName = "setlist-refresh-token"
 
 var errLoginFailed = fmt.Errorf("The username or password provided is incorrect.")
 
@@ -95,4 +98,24 @@ func (s *Service) Login(ctx context.Context, email, password string) (*LoginResu
 	res.AccessToken = accessToken
 
 	return res, nil
+}
+
+func (s *Service) Logout(ctx context.Context, refreshToken string) (bool, error) {
+	hash := crypto.HashToken(refreshToken)
+
+	session, err := s.session.GetByTokenHash(ctx, hash)
+	if err != nil {
+		s.logger.Error("failed to fetch session", zap.Error(err))
+		return true, nil
+	}
+
+	now := time.Now()
+	session.RevokedAt = &now
+
+	if err := s.session.Update(ctx, session); err != nil {
+		s.logger.Error("failed to revoke session", zap.Error(err))
+		return false, fmt.Errorf("internal server error")
+	}
+
+	return true, nil
 }

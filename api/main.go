@@ -43,8 +43,12 @@ func graphqlHandler(ur *db.UserRepository, as *auth.Service, l *zap.Logger, e co
 
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		rwCtx := graph.WithResponseWriter(ctx, c.Writer)
-		r := c.Request.WithContext(rwCtx)
+
+		ctx = graph.WithResponseWriter(ctx, c.Writer)
+		ctx = graph.WithRequestReader(ctx, c.Request)
+
+		r := c.Request.WithContext(ctx)
+
 		h.ServeHTTP(c.Writer, r)
 	}
 }

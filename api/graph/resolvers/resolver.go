@@ -2,9 +2,11 @@ package graph
 
 import (
 	"context"
+	"net/http"
 	"setlist/auth"
 	"setlist/config"
 	"setlist/db"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -23,6 +25,7 @@ type userGetter interface {
 
 type authService interface {
 	Login(ctx context.Context, email, password string) (*auth.LoginResult, error)
+	Logout(ctx context.Context, refreshToken string) (bool, error)
 }
 
 type Resolver struct {
@@ -44,3 +47,16 @@ func NewResolver(users userGetter, as *auth.Service, l *zap.Logger, e config.Env
 type Query struct{}
 
 type Mutation struct{}
+
+func (r *Resolver) setRefreshCookie(value string, expires time.Time, maxAge int) *http.Cookie {
+	return &http.Cookie{
+		Name:     auth.RefreshCookieName,
+		Value:    value,
+		HttpOnly: true,
+		Secure:   r.env.IsProduction(),
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/graphql",
+		Expires:  expires,
+		MaxAge:   maxAge,
+	}
+}

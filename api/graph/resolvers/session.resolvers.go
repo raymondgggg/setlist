@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 // Login is the resolver for the login field.
@@ -30,16 +31,7 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 	}
 
 	ttl := auth.RefreshTokenTTL
-	c := &http.Cookie{
-		Name:     "setlist-refresh-token",
-		Value:    res.RefreshToken,
-		HttpOnly: true,
-		Secure:   r.env.IsProduction(),
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/graphql",
-		Expires:  time.Now().Add(ttl),
-		MaxAge:   int(ttl.Seconds()),
-	}
+	c := r.setRefreshCookie(res.RefreshToken, time.Now().Add(ttl), int(ttl.Seconds()))
 
 	http.SetCookie(rw, c)
 
@@ -49,6 +41,38 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 	}
 
 	return s, nil
+}
+
+// Logout is the resolver for the logout field.
+func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
+	req, ok := graph.RequestReader(ctx)
+	if !ok {
+		r.logger.Error("could not fetch request reader ctx key")
+		return false, fmt.Errorf("internal server error")
+	}
+
+	c, err := req.Cookie(auth.RefreshCookieName)
+	if err != nil {
+		r.logger.Error("could not parse refresh token from cookie", zap.Error(err))
+		return true, nil
+	}
+	refreshToken := c.Value
+
+	success, err := r.auth.Logout(ctx, refreshToken)
+	if !success && err != nil {
+		return false, fmt.Errorf("internal server error")
+	}
+
+	rw, ok := graph.ResponseWriter(ctx)
+	if !ok {
+		r.logger.Error("could not fetch response writer ctx key")
+		return false, fmt.Errorf("internal server error")
+	}
+
+	c = r.setRefreshCookie("", time.Now(), -1)
+	http.SetCookie(rw, c)
+
+	return true, nil
 }
 
 // Session is the resolver for the session field.
