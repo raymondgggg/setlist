@@ -50,7 +50,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (*LoginResu
 	res := &LoginResult{}
 	u, err := s.user.GetByEmail(ctx, email)
 	if err != nil || u == nil {
-		s.logger.Warn("failed to fetch user", zap.Error(err))
+		s.logger.Warn("failed to fetch user by email", zap.Error(err))
 		return nil, errLoginFailed
 	}
 	res.UserID = u.ID
@@ -75,7 +75,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (*LoginResu
 	session := &db.Session{
 		ID:        uuid.New(),
 		UserID:    u.ID,
-		TokenHash: refreshToken,
+		TokenHash: crypto.HashToken(refreshToken),
 		ExpiresAt: time.Now().Add(RefreshTokenTTL),
 	}
 
