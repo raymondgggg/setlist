@@ -100,10 +100,8 @@ func (s *Service) Login(ctx context.Context, email, password string) (*LoginResu
 	return res, nil
 }
 
-func (s *Service) Logout(ctx context.Context, refreshToken string) (bool, error) {
-	hash := crypto.HashToken(refreshToken)
-
-	session, err := s.session.GetByTokenHash(ctx, hash)
+func (s *Service) Logout(ctx context.Context, hashedToken string) (bool, error) {
+	session, err := s.session.GetByTokenHash(ctx, hashedToken)
 	if err != nil {
 		s.logger.Error("failed to fetch session", zap.Error(err))
 		return true, nil

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"setlist/auth"
+	"setlist/crypto"
 	"setlist/graph"
 	"time"
 
@@ -58,7 +59,8 @@ func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
 	}
 	refreshToken := c.Value
 
-	success, err := r.auth.Logout(ctx, refreshToken)
+	hashedToken := crypto.HashToken(refreshToken)
+	success, err := r.auth.Logout(ctx, hashedToken)
 	if !success && err != nil {
 		return false, fmt.Errorf("internal server error")
 	}
