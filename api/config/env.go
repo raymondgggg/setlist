@@ -9,14 +9,16 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBUrl      string
-	JWTSecret  string
-	Env        Environment
+	DBHost       string
+	DBPort       string
+	DBUser       string
+	DBPassword   string
+	DBName       string
+	DBUrl        string
+	JWTSecret    string
+	Env          Environment
+	ResendAPIKey string
+	EmailFrom    string
 }
 
 type Environment string
@@ -74,6 +76,16 @@ func LoadEnv() (*Config, error) {
 		c.Env = Environment(v)
 	} else {
 		c.Env = Development
+	}
+
+	c.ResendAPIKey, err = requireEnv("RESEND_API_KEY")
+	if err != nil {
+		return nil, err
+	}
+
+	c.EmailFrom, err = requireEnv("EMAIL_FROM")
+	if err != nil {
+		return nil, err
 	}
 
 	return &c, nil
