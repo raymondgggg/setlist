@@ -2,17 +2,29 @@ package db
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
+var ErrEmailTaken = errors.New("email already in use")
+
+// Postgres error code for unique_violation.
+const pgUniqueViolation = "23505"
+
+// Name of the unique constraint on users.email (see migration 006).
+const usersEmailConstraint = "users_email_key"
+
 type User struct {
-	ID           uuid.UUID `gorm:"column:id;primaryKey"`
-	FirstName    *string   `gorm:"column:first_name"`
-	LastName     *string   `gorm:"column:last_name"`
-	Email        string    `gorm:"column:email"`
-	PasswordHash *string   `gorm:"column:password_hash"`
+	ID              uuid.UUID  `gorm:"column:id;primaryKey"`
+	FirstName       *string    `gorm:"column:first_name"`
+	LastName        *string    `gorm:"column:last_name"`
+	Email           string     `gorm:"column:email"`
+	PasswordHash    *string    `gorm:"column:password_hash"`
+	EmailVerifiedAt *time.Time `gorm:"column:email_verified_at"`
 }
 
 type UserRepository struct {
@@ -37,4 +49,14 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*User, e
 		return nil, err
 	}
 	return &u, nil
+}
+
+// Create inserts a new user. Returns ErrEmailTaken if the email is already registered.
+func (r *UserRepository) Create(ctx context.Context, u *User) error {
+	err := r.db.WithContext(ctx).Create(u).Error
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation && pgErr.ConstraintName == usersEmailConstraint {
+		return ErrEmailTaken
+	}
+	return err
 }
