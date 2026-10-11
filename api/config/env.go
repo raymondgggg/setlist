@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"net/url"
 	"os"
 
@@ -53,8 +55,10 @@ func requireEnv(key string) (string, error) {
 
 func LoadEnv() (*Config, error) {
 	c := Config{}
+	// A missing .env is fine (deployed environments set vars directly);
+	// requireEnv below catches anything actually missing.
 	err := godotenv.Load()
-	if err != nil {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return nil, fmt.Errorf("godotenv load: %w", err)
 	}
 

@@ -21,3 +21,23 @@ func TestRequireEnv(t *testing.T) {
 		assert.Equal(t, "", v)
 	})
 }
+
+func TestLoadEnv(t *testing.T) {
+	t.Run("missing .env file with vars set in environment", func(t *testing.T) {
+		t.Setenv("JWT_SECRET", "secret")
+		t.Setenv("RESEND_API_KEY", "key")
+		t.Setenv("EMAIL_FROM", "Setlist <noreply@example.com>")
+
+		c, err := LoadEnv()
+		assert.NoError(t, err)
+		assert.Equal(t, "secret", c.JWTSecret)
+		assert.Equal(t, Environment(Development), c.Env)
+	})
+	t.Run("missing .env file and missing required var", func(t *testing.T) {
+		t.Setenv("JWT_SECRET", "")
+
+		c, err := LoadEnv()
+		assert.ErrorContains(t, err, "JWT_SECRET is required")
+		assert.Nil(t, c)
+	})
+}
