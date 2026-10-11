@@ -27,6 +27,7 @@ func TestLoadEnv(t *testing.T) {
 		t.Setenv("JWT_SECRET", "secret")
 		t.Setenv("RESEND_API_KEY", "key")
 		t.Setenv("EMAIL_FROM", "Setlist <noreply@example.com>")
+		t.Setenv("FRONTEND_BASE_URL", "http://localhost:5173")
 
 		c, err := LoadEnv()
 		assert.NoError(t, err)

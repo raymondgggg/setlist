@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verify your email</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:8px;padding:32px;">
+            <tr>
+              <td style="color:#18181b;">
+                <h1 style="margin:0 0 16px;font-size:22px;">Verify your email</h1>
+                <p style="margin:0 0 24px;font-size:15px;line-height:1.5;">
+                  Welcome to Setlist! Confirm your email address to finish setting up your account.
+                </p>
+                <p style="margin:0 0 24px;">
+                  <a href="{{.Link}}" style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;font-size:15px;padding:12px 24px;border-radius:6px;">
+                    Verify email
+                  </a>
+                </p>
+                <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#52525b;">
+                  Or copy and paste this link into your browser:
+                </p>
+                <p style="margin:0 0 24px;font-size:13px;line-height:1.5;word-break:break-all;">
+                  <a href="{{.Link}}" style="color:#2563eb;">{{.Link}}</a>
+                </p>
+                <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#71717a;">
+                  This link expires in {{.ExpiresIn}}.
+                </p>
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#71717a;">
+                  If you didn't create a Setlist account, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

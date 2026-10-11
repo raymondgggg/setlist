@@ -26,7 +26,7 @@ func TestSendUserVerification_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	rc := resend.NewClient(cfg.ResendAPIKey)
-	c := NewClient(rc, zap.NewNop(), cfg.EmailFrom)
+	c := NewClient(rc, zap.NewNop(), cfg.EmailFrom, cfg.FrontendBaseURL)
 
 	t.Run("delivered", func(t *testing.T) {
 		err := c.SendUserVerification(t.Context(), "delivered@resend.dev", "test-token")
@@ -36,4 +36,31 @@ func TestSendUserVerification_Live(t *testing.T) {
 		err := c.SendUserVerification(t.Context(), "bounced@resend.dev", "test-token")
 		require.NoError(t, err)
 	})
+}
+
+func TestVerificationLink(t *testing.T) {
+	t.Run("builds link from base url", func(t *testing.T) {
+		link := verificationLink("http://localhost:5173", "abc123")
+		require.Equal(t, "http://localhost:5173/account/verify-email?token=abc123", link)
+	})
+	t.Run("trailing slash on base url is tolerated", func(t *testing.T) {
+		link := verificationLink("http://localhost:5173/", "abc123")
+		require.Equal(t, "http://localhost:5173/account/verify-email?token=abc123", link)
+	})
+	t.Run("token is query escaped", func(t *testing.T) {
+		link := verificationLink("http://localhost:5173", "a b&c=d")
+		require.Equal(t, "http://localhost:5173/account/verify-email?token=a+b%26c%3Dd", link)
+	})
+}
+
+func TestRenderVerification(t *testing.T) {
+	link := verificationLink("http://localhost:5173", "abc123")
+
+	htmlBody, textBody, err := renderVerification(link)
+	require.NoError(t, err)
+
+	require.Contains(t, htmlBody, `href="`+link+`"`)
+	require.Contains(t, htmlBody, "expires in 24 hours")
+	require.Contains(t, textBody, link)
+	require.Contains(t, textBody, "expires in 24 hours")
 }

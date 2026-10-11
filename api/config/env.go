@@ -11,16 +11,17 @@ import (
 )
 
 type Config struct {
-	DBHost       string
-	DBPort       string
-	DBUser       string
-	DBPassword   string
-	DBName       string
-	DBUrl        string
-	JWTSecret    string
-	Env          Environment
-	ResendAPIKey string
-	EmailFrom    string
+	DBHost          string
+	DBPort          string
+	DBUser          string
+	DBPassword      string
+	DBName          string
+	DBUrl           string
+	JWTSecret       string
+	Env             Environment
+	ResendAPIKey    string
+	EmailFrom       string
+	FrontendBaseURL string
 }
 
 type Environment string
@@ -88,6 +89,11 @@ func LoadEnv() (*Config, error) {
 	}
 
 	c.EmailFrom, err = requireEnv("EMAIL_FROM")
+	if err != nil {
+		return nil, err
+	}
+
+	c.FrontendBaseURL, err = requireEnv("FRONTEND_BASE_URL")
 	if err != nil {
 		return nil, err
 	}
