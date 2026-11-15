@@ -44,9 +44,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Session func(childComplexity int, userID uuid.UUID) int
-		User    func(childComplexity int, id uuid.UUID) int
-		Users   func(childComplexity int) int
+		User  func(childComplexity int, id uuid.UUID) int
+		Users func(childComplexity int) int
 	}
 
 	Session struct {
@@ -69,7 +68,6 @@ type MutationResolver interface {
 	VerifyEmail(ctx context.Context, token string) (bool, error)
 }
 type QueryResolver interface {
-	Session(ctx context.Context, userID uuid.UUID) (*Session, error)
 	User(ctx context.Context, id uuid.UUID) (*User, error)
 	Users(ctx context.Context) ([]*User, error)
 }
@@ -128,17 +126,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Mutation.VerifyEmail(childComplexity, args["token"].(string)), true
 
-	case "Query.session":
-		if e.ComplexityRoot.Query.Session == nil {
-			break
-		}
-
-		args, err := ec.field_Query_session_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.ComplexityRoot.Query.Session(childComplexity, args["userID"].(uuid.UUID)), true
 	case "Query.user":
 		if e.ComplexityRoot.Query.User == nil {
 			break
@@ -346,17 +333,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "userID", ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID)
-	if err != nil {
-		return nil, err
-	}
-	args["userID"] = arg0
 	return args, nil
 }
 
@@ -585,53 +561,6 @@ func (ec *executionContext) fieldContext_Mutation_verifyEmail(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_verifyEmail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_session,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Query().Session(ctx, fc.Args["userID"].(uuid.UUID))
-		},
-		nil,
-		ec.marshalOSession2ᚖsetlistᚋgraphᚐSession,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "userID":
-				return ec.fieldContext_Session_userID(ctx, field)
-			case "accessToken":
-				return ec.fieldContext_Session_accessToken(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_session_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2601,25 +2530,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "session":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_session(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "user":
 			field := field
 

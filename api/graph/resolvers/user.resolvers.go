@@ -49,3 +49,8 @@ func (r *queryResolver) User(ctx context.Context, id uuid.UUID) (*graph.User, er
 func (r *queryResolver) Users(ctx context.Context) ([]*graph.User, error) {
 	panic(fmt.Errorf("not implemented: Users - users"))
 }
+
+// Query returns graph.QueryResolver implementation.
+func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
+
+type queryResolver struct{ *Resolver }

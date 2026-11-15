@@ -14,7 +14,6 @@ import (
 	"setlist/graph"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -77,16 +76,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// Session is the resolver for the session field.
-func (r *queryResolver) Session(ctx context.Context, userID uuid.UUID) (*graph.Session, error) {
-	panic(fmt.Errorf("not implemented: Session - session"))
-}
-
 // Mutation returns graph.MutationResolver implementation.
 func (r *Resolver) Mutation() graph.MutationResolver { return &mutationResolver{r} }
 
-// Query returns graph.QueryResolver implementation.
-func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
-
 type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

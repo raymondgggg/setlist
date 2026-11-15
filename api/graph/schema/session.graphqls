@@ -1,7 +1,3 @@
-extend type Query {
-  session(userID: ID!): Session
-}
-
 extend type Mutation {
   login(email: String!, password: String!): Session @public
   logout: Boolean! @public
