@@ -3,8 +3,8 @@ extend type Query {
 }
 
 extend type Mutation {
-  login(email: String!, password: String!): Session
-  logout: Boolean!
+  login(email: String!, password: String!): Session @public
+  logout: Boolean! @public
 }
 
 type Session {

@@ -38,6 +38,8 @@ func graphqlHandler(ur *db.UserRepository, as *auth.Service, l *zap.Logger, e co
 	h.AddTransport(transport.GET{})
 	h.AddTransport(transport.POST{})
 
+	h.AroundFields(graph.RequireAuthenticated)
+
 	h.SetQueryCache(lru.New[*ast.QueryDocument](1000))
 
 	h.Use(extension.Introspection{})
@@ -103,7 +105,7 @@ func main() {
 	r := gin.Default()
 	r.Use(gin.Recovery())
 	r.Use(middleware.CORS(c.FrontendBaseURL))
-	r.POST("/graphql", graphqlHandler(ur, as, logger, c.Env))
+	r.POST("/graphql", middleware.Authenticate([]byte(c.JWTSecret)), graphqlHandler(ur, as, logger, c.Env))
 	r.GET("/", playgroundHandler())
 	r.Run()
 }

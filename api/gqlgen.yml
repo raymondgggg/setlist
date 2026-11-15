@@ -183,3 +183,8 @@ models:
     model:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
+
+# @public is a marker read by RequireAuthenticated, so it has no runtime hook.
+directives:
+  public:
+    skip_runtime: true

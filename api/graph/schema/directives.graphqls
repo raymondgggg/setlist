@@ -1,0 +1,5 @@
+"""
+Marks a root Query or Mutation field as callable without authentication.
+Every root field without this directive requires an authenticated user.
+"""
+directive @public on FIELD_DEFINITION

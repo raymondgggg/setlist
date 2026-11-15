@@ -278,7 +278,7 @@ func newExecutionContext(
 	}
 }
 
-//go:embed "schema/session.graphqls" "schema/user.graphqls"
+//go:embed "schema/directives.graphqls" "schema/session.graphqls" "schema/user.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -290,6 +290,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "schema/directives.graphqls", Input: sourceData("schema/directives.graphqls"), BuiltIn: false},
 	{Name: "schema/session.graphqls", Input: sourceData("schema/session.graphqls"), BuiltIn: false},
 	{Name: "schema/user.graphqls", Input: sourceData("schema/user.graphqls"), BuiltIn: false},
 }

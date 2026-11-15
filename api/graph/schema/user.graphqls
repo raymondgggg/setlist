@@ -4,8 +4,8 @@ extend type Query {
 }
 
 extend type Mutation {
-  createUser(input: NewUser!): User!
-  verifyEmail(token: String!): Boolean!
+  createUser(input: NewUser!): User! @public
+  verifyEmail(token: String!): Boolean! @public
 }
 
 type User {
