@@ -13,6 +13,7 @@ type NewUser struct {
 	FirstName *string `json:"firstName,omitempty"`
 	LastName  *string `json:"lastName,omitempty"`
 	Email     string  `json:"email"`
+	Password  string  `json:"password"`
 }
 
 type Query struct {

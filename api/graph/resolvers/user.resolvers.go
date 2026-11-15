@@ -8,6 +8,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"setlist/auth"
 	"setlist/graph"
 
 	"github.com/google/uuid"
@@ -15,7 +16,24 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input graph.NewUser) (*graph.User, error) {
-	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
+	du, err := r.auth.Register(ctx, auth.RegisterInput{
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+		Password:  input.Password,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return graph.ToGraphQLUser(du), nil
+}
+
+// VerifyEmail is the resolver for the verifyEmail field.
+func (r *mutationResolver) VerifyEmail(ctx context.Context, token string) (bool, error) {
+	if err := r.auth.VerifyEmail(ctx, token); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // User is the resolver for the user field.

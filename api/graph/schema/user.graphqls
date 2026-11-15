@@ -5,6 +5,7 @@ extend type Query {
 
 extend type Mutation {
   createUser(input: NewUser!): User!
+  verifyEmail(token: String!): Boolean!
 }
 
 type User {
@@ -18,4 +19,5 @@ input NewUser {
   firstName: String
   lastName: String
   email: String!
+  password: String!
 }

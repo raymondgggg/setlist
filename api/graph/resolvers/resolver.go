@@ -26,6 +26,8 @@ type userGetter interface {
 type authService interface {
 	Login(ctx context.Context, email, password string) (*auth.LoginResult, error)
 	Logout(ctx context.Context, refreshToken string) (bool, error)
+	Register(ctx context.Context, in auth.RegisterInput) (*db.User, error)
+	VerifyEmail(ctx context.Context, token string) error
 }
 
 type Resolver struct {
