@@ -22,9 +22,12 @@ type Config struct {
 	ResendAPIKey    string
 	EmailFrom       string
 	FrontendBaseURL string
+	EmailLogOnly    bool
 }
 
 type Environment string
+
+const defaultFrontendBaseURL = "http://localhost:5173"
 
 const (
 	Development = "development"
@@ -83,19 +86,33 @@ func LoadEnv() (*Config, error) {
 		c.Env = Development
 	}
 
-	c.ResendAPIKey, err = requireEnv("RESEND_API_KEY")
-	if err != nil {
-		return nil, err
+	// Local-dev escape hatch: log verification links instead of sending email.
+	// Must be opted into explicitly, and is refused in production.
+	c.EmailLogOnly = os.Getenv("EMAIL_LOG_ONLY") == "true"
+	if c.EmailLogOnly && c.Env.IsProduction() {
+		return nil, fmt.Errorf("EMAIL_LOG_ONLY cannot be enabled when APP_ENV is %q", Production)
 	}
 
-	c.EmailFrom, err = requireEnv("EMAIL_FROM")
-	if err != nil {
-		return nil, err
+	// Resend credentials are only needed when we actually send email.
+	if !c.EmailLogOnly {
+		c.ResendAPIKey, err = requireEnv("RESEND_API_KEY")
+		if err != nil {
+			return nil, err
+		}
+
+		c.EmailFrom, err = requireEnv("EMAIL_FROM")
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	c.FrontendBaseURL, err = requireEnv("FRONTEND_BASE_URL")
-	if err != nil {
-		return nil, err
+	if v := os.Getenv("FRONTEND_BASE_URL"); v != "" {
+		c.FrontendBaseURL = v
+	} else if c.Env.IsProduction() {
+		// A localhost default would put dead links in production emails.
+		return nil, fmt.Errorf("FRONTEND_BASE_URL is required in %s", Production)
+	} else {
+		c.FrontendBaseURL = defaultFrontendBaseURL
 	}
 
 	return &c, nil
