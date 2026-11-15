@@ -9,6 +9,7 @@ import (
 	"github.com/resend/resend-go/v4"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // TestSendUserVerification_Live sends real emails through Resend, so it only
@@ -63,4 +64,17 @@ func TestRenderVerification(t *testing.T) {
 	require.Contains(t, htmlBody, "expires in 24 hours")
 	require.Contains(t, textBody, link)
 	require.Contains(t, textBody, "expires in 24 hours")
+}
+
+func TestLogSender(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	s := NewLogSender(zap.New(core), "http://localhost:5173")
+
+	err := s.SendUserVerification(t.Context(), "johndoe@gmail.com", "abc123")
+	require.NoError(t, err)
+
+	require.Equal(t, 1, logs.Len())
+	fields := logs.All()[0].ContextMap()
+	require.Equal(t, "johndoe@gmail.com", fields["to"])
+	require.Equal(t, "http://localhost:5173/account/verify-email?token=abc123", fields["link"])
 }
