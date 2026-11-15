@@ -8,6 +8,7 @@ import (
 	"setlist/email"
 	"setlist/graph"
 	resolvers "setlist/graph/resolvers"
+	"setlist/middleware"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -101,6 +102,7 @@ func main() {
 	// Setting up Gin
 	r := gin.Default()
 	r.Use(gin.Recovery())
+	r.Use(middleware.CORS(c.FrontendBaseURL))
 	r.POST("/graphql", graphqlHandler(ur, as, logger, c.Env))
 	r.GET("/", playgroundHandler())
 	r.Run()
