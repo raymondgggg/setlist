@@ -14,12 +14,24 @@ import (
 )
 
 type fakeUserGetter struct {
-	user *db.User
-	err  error
+	user      *db.User
+	err       error
+	createErr error
+	created   *db.User
+	gotEmail  string
 }
 
 func (f *fakeUserGetter) GetByEmail(ctx context.Context, email string) (*db.User, error) {
+	f.gotEmail = email
 	return f.user, f.err
+}
+
+func (f *fakeUserGetter) Create(ctx context.Context, u *db.User) error {
+	if f.createErr != nil {
+		return f.createErr
+	}
+	f.created = u
+	return nil
 }
 
 type fakeSessionRepository struct {
@@ -46,12 +58,14 @@ func (f *fakeSessionRepository) Update(ctx context.Context, us *db.Session) erro
 func setupLoginTest(email, password string, err error) (*fakeUserGetter, *fakeSessionRepository, *Service) {
 	userID := uuid.New()
 	hash, _ := crypto.HashPassword(password)
+	verifiedAt := time.Now()
 
 	ug := &fakeUserGetter{
 		user: &db.User{
-			ID:           userID,
-			Email:        email,
-			PasswordHash: &hash,
+			ID:              userID,
+			Email:           email,
+			PasswordHash:    &hash,
+			EmailVerifiedAt: &verifiedAt,
 		},
 		err: nil,
 	}
@@ -98,6 +112,36 @@ func TestLogin(t *testing.T) {
 
 		// 3. token expires in about now + RefreshTokenTTL (1s delta)
 		assert.WithinDuration(t, time.Now().Add(RefreshTokenTTL), sg.session.ExpiresAt, 1*time.Second)
+	})
+}
+
+func TestLoginEmailVerification(t *testing.T) {
+	t.Run("unverified account with correct password is told to verify", func(t *testing.T) {
+		email, password := "unverified@gmail.com", "t0t4llys3curep4ssw0rd"
+		ug, sg, s := setupLoginTest(email, password, nil)
+		ug.user.EmailVerifiedAt = nil
+
+		res, err := s.Login(t.Context(), email, password)
+		assert.Nil(t, res)
+		assert.Equal(t, ErrEmailNotVerified, err)
+		assert.Empty(t, sg.session.TokenHash, "no session should be created")
+	})
+	t.Run("unverified account with wrong password stays generic", func(t *testing.T) {
+		email, password := "unverified@gmail.com", "t0t4llys3curep4ssw0rd"
+		ug, _, s := setupLoginTest(email, password, nil)
+		ug.user.EmailVerifiedAt = nil
+
+		res, err := s.Login(t.Context(), email, "wrong-password")
+		assert.Nil(t, res)
+		assert.Equal(t, errLoginFailed, err)
+	})
+	t.Run("email lookup is case-insensitive", func(t *testing.T) {
+		password := "t0t4llys3curep4ssw0rd"
+		ug, _, s := setupLoginTest("johndoe@gmail.com", password, nil)
+
+		_, err := s.Login(t.Context(), "  JohnDoe@Gmail.com ", password)
+		assert.NoError(t, err)
+		assert.Equal(t, "johndoe@gmail.com", ug.gotEmail)
 	})
 }
 

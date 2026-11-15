@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"setlist/auth"
 	"setlist/config"
 	"setlist/db"
+	"setlist/email"
 	"setlist/graph"
 	resolvers "setlist/graph/resolvers"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/resend/resend-go/v4"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
@@ -79,9 +82,21 @@ func main() {
 	// Create repositories
 	ur := db.NewUserRepository(gormDB)
 	sr := db.NewSessionRepository(gormDB)
+	vr := db.NewEmailVerificationRepository(gormDB)
+
+	// Create email sender
+	var ec interface {
+		SendUserVerification(ctx context.Context, to, token string) error
+	}
+	if c.EmailLogOnly {
+		logger.Warn("EMAIL_LOG_ONLY is enabled: emails will be logged, not sent")
+		ec = email.NewLogSender(logger, c.FrontendBaseURL)
+	} else {
+		ec = email.NewClient(resend.NewClient(c.ResendAPIKey), logger, c.EmailFrom, c.FrontendBaseURL)
+	}
 
 	// Create auth service
-	as := auth.NewService(ur, sr, logger, c.JWTSecret)
+	as := auth.NewService(ur, sr, vr, ec, logger, c.JWTSecret)
 
 	// Setting up Gin
 	r := gin.Default()
