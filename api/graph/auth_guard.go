@@ -13,6 +13,15 @@ import (
 // CodeUnauthenticated is the error extension code for an anonymous caller.
 const CodeUnauthenticated = "UNAUTHENTICATED"
 
+// UnauthenticatedError returns the error for a caller that is not logged in,
+// or whose account no longer exists.
+func UnauthenticatedError() *gqlerror.Error {
+	return &gqlerror.Error{
+		Message:    "Authentication required.",
+		Extensions: map[string]any{"code": CodeUnauthenticated},
+	}
+}
+
 // RequireAuthenticated is a field middleware that denies anonymous callers on
 // every root Query and Mutation field not marked @public, so a field added
 // without the directive fails closed.
@@ -32,10 +41,7 @@ func RequireAuthenticated(ctx context.Context, next graphql.Resolver) (any, erro
 	}
 
 	if _, ok := auth.UserIDFromContext(ctx); !ok {
-		return nil, &gqlerror.Error{
-			Message:    "Authentication required.",
-			Extensions: map[string]any{"code": CodeUnauthenticated},
-		}
+		return nil, UnauthenticatedError()
 	}
 	return next(ctx)
 }
