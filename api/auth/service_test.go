@@ -95,6 +95,7 @@ func TestLogin(t *testing.T) {
 		claims, err := ParseAccessToken(res.AccessToken, []byte(s.jwtSecret))
 		assert.NoError(t, err)
 		assert.Equal(t, ug.user.ID, claims.UserID)
+		assert.Equal(t, ug.user, res.User)
 	})
 	t.Run("session is created with correct data", func(t *testing.T) {
 		email := "johndoe@gmail.com"

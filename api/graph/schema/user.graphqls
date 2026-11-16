@@ -1,10 +1,5 @@
-extend type Query {
-  user(id: ID!): User
-  users: [User!]!
-}
-
 extend type Mutation {
-  createUser(input: NewUser!): User! @public
+  createUser(input: NewUser!): ID! @public
   verifyEmail(token: String!): Boolean! @public
 }
 

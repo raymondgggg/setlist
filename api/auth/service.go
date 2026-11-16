@@ -69,7 +69,7 @@ var errLoginFailed = fmt.Errorf("The username or password provided is incorrect.
 var ErrEmailNotVerified = fmt.Errorf("Please verify your email address before logging in.")
 
 type LoginResult struct {
-	UserID       uuid.UUID
+	User         *db.User
 	AccessToken  string
 	RefreshToken string
 }
@@ -81,7 +81,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (*LoginResu
 		s.logger.Warn("failed to fetch user by email", zap.Error(err))
 		return nil, errLoginFailed
 	}
-	res.UserID = u.ID
+	res.User = u
 
 	if u.PasswordHash == nil {
 		// TODO: implement OAuth only flow

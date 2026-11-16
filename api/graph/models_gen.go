@@ -6,6 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type LoginResponse struct {
+	AccessToken string   `json:"accessToken"`
+	Session     *Session `json:"session"`
+}
+
 type Mutation struct {
 }
 
@@ -20,8 +25,7 @@ type Query struct {
 }
 
 type Session struct {
-	UserID      uuid.UUID `json:"userID"`
-	AccessToken string    `json:"accessToken"`
+	User *User `json:"user"`
 }
 
 type User struct {

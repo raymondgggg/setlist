@@ -34,12 +34,12 @@ func TestRequireAuthenticated(t *testing.T) {
 		ctx     context.Context
 		allowed bool
 	}{
-		{"anonymous denied on unmarked query", fieldCtx("Query", "me"), false},
+		{"anonymous denied on unmarked query", fieldCtx("Query", "session"), false},
 		{"anonymous denied on unmarked mutation", fieldCtx("Mutation", "createReview"), false},
 		{"anonymous allowed on public field", fieldCtx("Mutation", "login", "public"), true},
 		{"anonymous allowed on introspection", fieldCtx("Query", "__schema"), true},
 		{"anonymous allowed on nested field", fieldCtx("User", "email"), true},
-		{"authenticated allowed on unmarked field", auth.WithUserID(fieldCtx("Query", "me"), uuid.New()), true},
+		{"authenticated allowed on unmarked field", auth.WithUserID(fieldCtx("Query", "session"), uuid.New()), true},
 	}
 
 	for _, tt := range tests {

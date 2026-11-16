@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"setlist/auth"
@@ -15,10 +16,11 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*graph.Session, error) {
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*graph.LoginResponse, error) {
 	res, err := r.auth.Login(ctx, email, password)
 	if err != nil {
 		return nil, err
@@ -35,12 +37,10 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 
 	http.SetCookie(rw, c)
 
-	s := &graph.Session{
-		UserID:      res.UserID,
+	return &graph.LoginResponse{
 		AccessToken: res.AccessToken,
-	}
-
-	return s, nil
+		Session:     &graph.Session{User: graph.ToGraphQLUser(res.User)},
+	}, nil
 }
 
 // Logout is the resolver for the logout field.
@@ -76,7 +76,30 @@ func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+// Session is the resolver for the session field.
+func (r *queryResolver) Session(ctx context.Context) (*graph.Session, error) {
+	id, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, graph.UnauthenticatedError()
+	}
+
+	du, err := r.users.GetByID(ctx, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, graph.UnauthenticatedError()
+	}
+	if err != nil {
+		r.logger.Error("failed to fetch session user", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &graph.Session{User: graph.ToGraphQLUser(du)}, nil
+}
+
 // Mutation returns graph.MutationResolver implementation.
 func (r *Resolver) Mutation() graph.MutationResolver { return &mutationResolver{r} }
 
+// Query returns graph.QueryResolver implementation.
+func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
+
 type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }

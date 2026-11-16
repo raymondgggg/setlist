@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"setlist/auth"
 	"setlist/graph"
 
@@ -15,7 +14,7 @@ import (
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input graph.NewUser) (*graph.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input graph.NewUser) (uuid.UUID, error) {
 	du, err := r.auth.Register(ctx, auth.RegisterInput{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
@@ -23,9 +22,9 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input graph.NewUser) 
 		Password:  input.Password,
 	})
 	if err != nil {
-		return nil, err
+		return uuid.Nil, err
 	}
-	return graph.ToGraphQLUser(du), nil
+	return du.ID, nil
 }
 
 // VerifyEmail is the resolver for the verifyEmail field.
@@ -35,22 +34,3 @@ func (r *mutationResolver) VerifyEmail(ctx context.Context, token string) (bool,
 	}
 	return true, nil
 }
-
-// User is the resolver for the user field.
-func (r *queryResolver) User(ctx context.Context, id uuid.UUID) (*graph.User, error) {
-	du, err := r.users.GetByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return graph.ToGraphQLUser(du), nil
-}
-
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*graph.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
-}
-
-// Query returns graph.QueryResolver implementation.
-func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
-
-type queryResolver struct{ *Resolver }
